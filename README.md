@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/logo.png" width="200" alt="Favo">
+  <img src="docs/images/logo.png?v=2" width="200" alt="Favo">
 </p>
 
 <h1 align="center">Favo<br><sub><sup><sup><sub>Copyright (©) 2026 Erik Pimenta</sub></sup></sup></sub></h1>
