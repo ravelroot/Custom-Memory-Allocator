@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "favo-api"
+version = "1.0.0"
+description = "API REST e WebSocket do alocador de memória Favo"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.30",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "httpx>=0.27"]
+
+[project.scripts]
+favo-api = "favo_api.__main__:main"
+
+[tool.setuptools]
+packages = ["favo_api"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

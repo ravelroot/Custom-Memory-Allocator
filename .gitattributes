@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.pdf binary
+*.png binary
+web/package-lock.json linguist-generated=true
+docs/** linguist-documentation=true
+traces/** linguist-vendored=true

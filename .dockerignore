@@ -1,0 +1,10 @@
+build
+build-*
+web/node_modules
+web/dist
+data
+**/__pycache__
+**/.pytest_cache
+.git
+*.pdf
+docs

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Painel do alocador de memória Favo">
+  <title>Favo · alocador de memória</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script>
+    try {
+      const t = localStorage.getItem("favo-tema");
+      if (t) document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

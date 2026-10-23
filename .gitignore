@@ -1,0 +1,16 @@
+build/
+build-*/
+web/node_modules/
+web/dist/
+data/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.log
+!.github/rotina/registro.log
+*.trace.out
+.env
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '.github/rotina/**'
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nativo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compilar
+        env:
+          CC: ${{ matrix.cc }}
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build -j4
+      - name: Testes
+        run: cd build && ctest --output-on-failure
+      - name: Sanitizers
+        env:
+          CC: ${{ matrix.cc }}
+        run: |
+          cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=Debug -DFAVO_SANITIZE=ON
+          cmake --build build-asan -j4
+          cd build-asan && ctest --output-on-failure
+      - name: Valgrind
+        if: matrix.cc == 'gcc'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq valgrind
+          valgrind --error-exitcode=1 --leak-check=full build/test_basic
+          valgrind --error-exitcode=1 build/test_policies
+      - uses: actions/upload-artifact@v4
+        if: matrix.cc == 'gcc'
+        with:
+          name: favo-linux-amd64
+          path: |
+            build/favo
+            build/libfavo.so*
+            build/libfavo_preload.so
+            build/libfavo_static.a
+            include/favo.h
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compilar e testar
+        run: |
+          cmake -S . -B build -DFAVO_BUILD_TESTS=ON
+          cmake --build build --config Release
+          cd build
+          ctest -C Release --output-on-failure
+
+  api-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Biblioteca
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DFAVO_BUILD_TESTS=OFF
+          cmake --build build -j4
+      - name: API
+        run: |
+          pip install -r api/requirements-dev.txt
+          cd api && FAVO_LIBRARY=../build/libfavo.so python -m pytest -q
+      - name: Interface
+        run: |
+          cd web
+          npm ci
+          npm run build
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [nativo, api-web]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Imagem
+        run: docker build -t favo:ci .
