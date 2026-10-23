@@ -29,7 +29,7 @@
 - **Blocos com cabeçalho e rodapé:** cada bloco tem um cabeçalho de 16 bytes (tamanho, estado e assinatura) e um rodapé de 8 bytes com o mesmo tamanho (boundary tags). O payload sai sempre alinhado a 16 bytes, e o bloco mínimo tem 64 bytes.
 - **Três algoritmos de alocação:** **First-Fit** e **Next-Fit** percorrem uma **lista circular duplamente encadeada** ordenada por endereço (ou LIFO). **Best-Fit** desce por uma **árvore rubro-negra** ordenada por tamanho e endereço em O(log n). A política pode ser trocada com o heap em uso.
 - **Divisão e fusão:** um bloco maior que o pedido é dividido e a sobra volta para as estruturas. No `free`, o bloco se funde em O(1) com os vizinhos livres da esquerda e da direita (coalescing), olhando o rodapé do anterior e o cabeçalho do seguinte.
-- **API completa:** `malloc`, `free`, `calloc`, `realloc` (cresce no lugar quando o vizinho está livre), `memalign`, `posix_memalign`, `aligned_alloc`, `valloc`, `pvalloc` e `malloc_usable_size`.
+- **API completa:** `malloc`, `free`, `calloc`, `realloc` (cresce no lugar quando o vizinho está livre), `memalign`, `posix_memalign`, `aligned_alloc`, `valloc`, `pvalloc` e `malloc_usable_size`, além de `malloc_trim` e `malloc_stats` no `LD_PRELOAD`.
 - **Blocos grandes direto do sistema:** pedidos acima do limite configurável ganham um `mmap` próprio e voltam ao sistema no `free`. Arenas totalmente livres são devolvidas, e o topo do `sbrk` encolhe com `trim`.
 - **Segurança:** detecta double free, ponteiro de fora do heap, ponteiro do meio de um bloco e escrita além do fim do bloco (rodapé corrompido). Um verificador percorre arenas, lista e árvore e confere cada invariante.
 - **Seguro com threads:** cada heap tem o seu lock, e a versão com `LD_PRELOAD` trata `fork` sem deixar o lock preso no processo filho.
@@ -179,6 +179,8 @@ FAVO_POLICY=best FAVO_STATS=1 LD_PRELOAD=./build/libfavo_preload.so bash -c "ls 
 | `FAVO_MAX_BYTES` | limite total de memória do heap (`0` = sem limite) | `0` |
 | `FAVO_ABORT` | `1` aborta em double free e heap corrompido | `1` |
 | `FAVO_STATS` | `1` imprime as estatísticas no fim do programa | `0` |
+
+As extensões da glibc `malloc_trim` e `malloc_stats` também apontam para o Favo: um programa que chama `malloc_trim(0)` devolve ao sistema o espaço livre no fim das arenas do Favo, e `malloc_stats()` imprime no stderr a mesma linha de estatísticas do `FAVO_STATS`, a qualquer momento.
 
 ## Linha de comando
 
