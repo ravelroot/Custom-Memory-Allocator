@@ -21,11 +21,8 @@ static void after_fork(void)
     favo_lock_release(&favo_default_heap()->lock);
 }
 
-static void report_stats(void)
+static void write_stats(void)
 {
-    const char *v = getenv("FAVO_STATS");
-    if (!v || *v == '0')
-        return;
     favo_stats s;
     favo_heap_stats(favo_default_heap(), &s);
     char line[512];
@@ -40,6 +37,14 @@ static void report_stats(void)
         ssize_t ignored = write(2, line, (size_t)n < sizeof(line) ? (size_t)n : sizeof(line) - 1);
         (void)ignored;
     }
+}
+
+static void report_stats(void)
+{
+    const char *v = getenv("FAVO_STATS");
+    if (!v || *v == '0')
+        return;
+    write_stats();
 }
 
 __attribute__((constructor)) static void favo_preload_init(void)
@@ -111,4 +116,16 @@ FAVO_EXPORT void *pvalloc(size_t size)
 FAVO_EXPORT size_t malloc_usable_size(void *ptr)
 {
     return favo_usable_size(ptr);
+}
+
+/* Extensões da glibc: sem elas, malloc_trim e malloc_stats caem na glibc,
+   que só enxerga as arenas dela e ignora o heap do Favo. */
+FAVO_EXPORT int malloc_trim(size_t pad)
+{
+    return favo_heap_trim(favo_default_heap(), pad) > 0;
+}
+
+FAVO_EXPORT void malloc_stats(void)
+{
+    write_stats();
 }

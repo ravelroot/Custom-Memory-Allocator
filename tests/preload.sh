@@ -8,6 +8,10 @@ echo "favo" | grep -q favo
 awk 'BEGIN { s = ""; for (i = 0; i < 20000; i++) s = s "x"; print length(s) }' | grep -q 20000
 if command -v python3 >/dev/null 2>&1; then
   python3 -c "d = {i: str(i) * 10 for i in range(100000)}; assert len(d) == 100000"
+  python3 -c "import ctypes; assert ctypes.CDLL(None).malloc_trim(0) in (0, 1)"
+  FAVO_POLICY=next FAVO_STATS=0 python3 -c "import ctypes; ctypes.CDLL(None).malloc_stats()" 2> stats.txt
+  grep -q "politica=next-fit" stats.txt
+  rm -f stats.txt
 fi
 FAVO_POLICY=best FAVO_STATS=1 bash -c 'x=$(seq 1 2000); test -n "$x"' > /dev/null 2> stats.txt || true
 grep -q "politica=best-fit" stats.txt
